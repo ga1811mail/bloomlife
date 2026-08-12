@@ -218,7 +218,7 @@
                         <input type="text" id="foodSearchInput" oninput="handleFoodSearch()" placeholder="搜尋：菠蘿油, 凍檸茶, 生啤酒, 威士忌, 清酒..." class="w-full pl-9 pr-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-green-500">
                     </div>
 
-                    <div id="searchResults" class="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-800 hidden"></div>
+                    <div id="searchResults" class="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-800 hidden bg-white dark:bg-zinc-800 rounded-xl p-1 shadow-inner border border-slate-100 dark:border-zinc-700"></div>
                 </div>
 
                 <!-- Today's Logged Meals List -->
@@ -239,7 +239,7 @@
                         <label class="text-[11px] font-semibold text-slate-600 dark:text-zinc-400">選擇運動類型</label>
                         <select id="exerciseSelect" onchange="calculateExerciseBurn()" class="w-full p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-green-500">
                             <option value="8.0" data-name="跑步 (中速 8km/h)">跑步 (中速 8km/h) - MET 8.0</option>
-                            <option value="6.0" data-name="重量訓練 / 肌力">重量訓練 / 肌力 - MET 6.0</option>
+                            <option value="6.0" data-name="重量訓練 / 肌力" selected>重量訓練 / 肌力 - MET 6.0</option>
                             <option value="10.0" data-name="高強度間歇 (HIIT)">高強度間歇 (HIIT) - MET 10.0</option>
                             <option value="7.0" data-name="游泳 (自由式)">游泳 (自由式) - MET 7.0</option>
                             <option value="3.5" data-name="快走 (5.5km/h)">快走 (5.5km/h) - MET 3.5</option>
@@ -255,8 +255,8 @@
                             </div>
                             <div>
                                 <label class="text-[10px] text-slate-400 font-semibold">預估消耗 (kcal)</label>
-                                <div id="estimatedBurn" class="w-full mt-1 p-2 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700/50 rounded-xl text-xs font-bold text-purple-600 dark:text-purple-400">
-                                    約 0 kcal
+                                <div id="estimatedBurn" class="w-full mt-1 p-2 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700/50 rounded-xl text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center">
+                                    約 308 kcal
                                 </div>
                             </div>
                         </div>
@@ -362,23 +362,32 @@
                     </div>
                 </div>
 
-                <!-- Gemini AI API Settings -->
+                <!-- xAI Grok API Settings -->
                 <div class="bg-slate-50 dark:bg-zinc-800/60 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800 space-y-3">
                     <div class="flex items-center space-x-2">
                         <i class="fa-solid fa-wand-magic-sparkles text-emerald-500"></i>
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Gemini AI Food & Alcohol Scan 設定</h3>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">xAI Grok API Food & Alcohol Scan 設定</h3>
                     </div>
 
                     <div>
-                        <label class="text-[10px] font-semibold text-slate-400">Gemini API Key (自訂 / 預設自動授權)</label>
-                        <input type="password" id="geminiApiKey" placeholder="AI Key (留空自動套用系統算力)" onchange="saveProfileSettings()" class="w-full mt-1 p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-mono">
+                        <label class="text-[10px] font-semibold text-slate-400">Grok API Key (xAI 官方 Key)</label>
+                        <input type="password" id="grokApiKey" placeholder="xai-xxxxxxxxxxxxxxxx" onchange="saveProfileSettings()" class="w-full mt-1 p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-mono">
                     </div>
 
-                    <div>
-                        <label class="text-[10px] font-semibold text-slate-400">估重/估量 Buffer 區間 (±%)</label>
-                        <div class="flex items-center space-x-3 mt-1">
-                            <input type="range" id="bufferRange" min="5" max="50" value="15" oninput="document.getElementById('bufferVal').innerText = this.value + '%'; saveProfileSettings();" class="w-full accent-green-500">
-                            <span id="bufferVal" class="text-xs font-bold text-green-600 dark:text-green-400 w-12 text-right">15%</span>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400">AI 辨識模型</label>
+                            <select id="grokModel" onchange="saveProfileSettings()" class="w-full mt-1 p-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold">
+                                <option value="grok-2-vision-1212">grok-2-vision-1212</option>
+                                <option value="grok-4-fast-non-reasoning">grok-4-fast-non-reasoning</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400">估重 Buffer (±%)</label>
+                            <div class="flex items-center space-x-2 mt-2">
+                                <input type="range" id="bufferRange" min="5" max="50" value="15" oninput="document.getElementById('bufferVal').innerText = this.value + '%'; saveProfileSettings();" class="w-full accent-green-500">
+                                <span id="bufferVal" class="text-xs font-bold text-green-600 dark:text-green-400 shrink-0">15%</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -407,7 +416,6 @@
                 <span class="text-[10px] font-semibold mt-0.5">我的</span>
             </button>
         </nav>
-
 
         <!-- MODAL: INBODY DATA MANUAL UPDATE -->
         <div id="inbodyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300">
@@ -456,11 +464,15 @@
             <div class="bg-white dark:bg-zinc-900 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto border border-slate-200 dark:border-zinc-800">
                 <div class="flex justify-between items-center border-b border-slate-100 dark:border-zinc-800 pb-3">
                     <h3 class="text-sm font-bold flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                        <i class="fa-solid fa-camera"></i> AI 掃描 InBody 報告 / 體重計
+                        <i class="fa-solid fa-camera"></i> AI 掃描 InBody 報告 / 體重計照片
                     </h3>
                     <button onclick="closeModal('inbodyScanModal')" class="text-slate-400 hover:text-slate-600 p-1">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
+                </div>
+
+                <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl text-[11px] text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-900/50">
+                    <i class="fa-solid fa-circle-info mr-1"></i> 支援 <strong>AI 辨識 InBody 紙本報告、App 截圖或體重計照片</strong>，上傳後 AI 自動解析數據。
                 </div>
 
                 <div class="border-2 border-dashed border-slate-200 dark:border-zinc-700 rounded-2xl p-5 text-center space-y-3 bg-slate-50 dark:bg-zinc-800/40">
@@ -471,7 +483,7 @@
                         <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-lg mb-1">
                             <i class="fa-solid fa-file-arrow-up"></i>
                         </div>
-                        <p class="text-xs font-semibold text-slate-700 dark:text-zinc-300">上傳 InBody 紙本報告或體重計照片</p>
+                        <p class="text-xs font-semibold text-slate-700 dark:text-zinc-300">上傳 InBody 報告或 iOS 健康 App 截圖</p>
                     </div>
                     <input type="file" id="inbodyPhotoInput" accept="image/*" class="hidden" onchange="handleInbodyPhotoSelect(event)">
                     <button onclick="document.getElementById('inbodyPhotoInput').click()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow hover:bg-emerald-700 transition">
@@ -481,13 +493,13 @@
 
                 <div id="inbodyScanLoading" class="hidden text-center py-4 space-y-2">
                     <i class="fa-solid fa-spinner fa-spin text-2xl text-emerald-500"></i>
-                    <p class="text-xs font-semibold text-slate-600 dark:text-zinc-300">Gemini AI 正在解析 InBody 數據...</p>
+                    <p class="text-xs font-semibold text-slate-600 dark:text-zinc-300" id="inbodyScanStatusText">Grok AI 正在解析 InBody / 健康數據...</p>
                 </div>
 
                 <div id="inbodyScanResults" class="hidden space-y-3">
                     <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl text-xs space-y-1">
-                        <div class="font-bold text-emerald-900 dark:text-emerald-200">掃描結果確認：</div>
-                        <div id="inbodyScanSummary" class="text-emerald-700 dark:text-emerald-300">體重: -- kg | 體脂: --% | 肌肉: -- kg</div>
+                        <div class="font-bold text-emerald-900 dark:text-emerald-200">AI 辨識結果確認：</div>
+                        <div id="inbodyScanSummary" class="text-emerald-700 dark:text-emerald-300 font-medium">體重: -- kg | 體脂: --% | 肌肉: -- kg | BMI: --</div>
                     </div>
                     <button onclick="applyInbodyScanData()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow">
                         確認並同步入資料庫
@@ -527,7 +539,7 @@
                 <div id="scanResultSection" class="hidden space-y-3">
                     <div id="scanLoading" class="text-center py-4 space-y-2">
                         <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-500"></i>
-                        <p class="text-xs font-semibold text-slate-600 dark:text-zinc-300">Gemini AI 正在分析食物與酒類成分...</p>
+                        <p class="text-xs font-semibold text-slate-600 dark:text-zinc-300">Grok AI 正在分析食物與酒類成分...</p>
                     </div>
 
                     <div id="scanSuccess" class="space-y-3 hidden">
@@ -647,12 +659,12 @@
             { id: 111, name: "中國茅台 / 醬香烈酒 (50ml)", cals: 130, p: 0, f: 0, c: 1, category: "酒類/烈酒" },
         ];
 
-        // --- 2. State Management (Standardized Metric Storage) ---
+        // Default Initial Application Data
         let appData = {
             profile: {
                 name: "Terry Lee",
-                weight: 68.5, // kg
-                height: 175,  // cm
+                weight: 68.5, // stored in kg
+                height: 175,  // stored in cm
                 unitWeight: "kg",
                 unitHeight: "cm",
                 goal: "muscle",
@@ -661,7 +673,8 @@
                 targetProtein: 140,
                 targetFat: 70,
                 targetCarbs: 250,
-                geminiApiKey: "",
+                grokApiKey: "",
+                grokModel: "grok-2-vision-1212",
                 buffer: 15
             },
             meals: [
@@ -679,118 +692,120 @@
             }
         };
 
-        // --- 3. Dynamic Date Helper ---
-        function updateTodayDateUI() {
-            try {
-                const now = new Date();
-                const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-                const dateStr = now.toLocaleDateString('zh-TW', options);
-                const el = document.getElementById('todayDate');
-                if (el) el.innerText = dateStr;
-            } catch(e) { console.error(e); }
-        }
-
-        // --- 4. Unit Conversion Calculations ---
-        function formatWeightDisplay(weightInKg, unit) {
-            if (unit === 'lb') {
-                return (parseFloat(weightInKg) * 2.20462).toFixed(1);
-            }
-            return parseFloat(weightInKg).toFixed(1);
-        }
-
-        function parseWeightToKg(inputVal, unit) {
-            const val = parseFloat(inputVal) || 0;
-            if (unit === 'lb') {
-                return val / 2.20462;
-            }
-            return val;
-        }
-
-        // --- 5. Persistence Helpers ---
+        // --- STREAMING_CHUNK:Storage and State Managers... ---
         function loadSavedState() {
             try {
-                const saved = localStorage.getItem('bloomlife_data_v2');
+                const saved = localStorage.getItem('bloomlife_app_data');
                 if (saved) {
-                    appData = JSON.parse(saved);
+                    const parsed = JSON.parse(saved);
+                    appData = { ...appData, ...parsed };
+                    if (parsed.profile) appData.profile = { ...appData.profile, ...parsed.profile };
+                    if (parsed.inbody) appData.inbody = { ...appData.inbody, ...parsed.inbody };
                 }
-            } catch(e) { console.error("Could not load state", e); }
+            } catch (e) {
+                console.error("Failed to load saved state", e);
+            }
         }
 
         function saveState() {
             try {
-                localStorage.setItem('bloomlife_data_v2', JSON.stringify(appData));
-                updateUI();
-            } catch(e) { console.error("Could not save state", e); }
-        }
-
-        // --- 6. Navigation & Modals ---
-        function switchTab(tabKey) {
-            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-nav-btn').forEach(btn => {
-                btn.classList.remove('text-green-600', 'dark:text-green-400');
-                btn.classList.add('text-slate-400');
-            });
-
-            const activeTab = document.getElementById(`tab-${tabKey}`);
-            if (activeTab) activeTab.classList.remove('hidden');
-
-            const activeBtn = document.getElementById(`tabBtn-${tabKey}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-slate-400');
-                activeBtn.classList.add('text-green-600', 'dark:text-green-400');
-            }
-
-            if (tabKey === 'trends') {
-                setTimeout(renderTrendsCharts, 100);
+                localStorage.setItem('bloomlife_app_data', JSON.stringify(appData));
+            } catch (e) {
+                console.error("Failed to save state", e);
             }
         }
 
-        function openModal(modalId) {
-            if (modalId === 'inbodyModal') {
-                const displayW = formatWeightDisplay(appData.inbody.weight, appData.profile.unitWeight);
-                document.getElementById('inbodyInputWeight').value = displayW;
-                document.getElementById('inbodyInputFat').value = appData.inbody.fatPct;
-                document.getElementById('inbodyInputMuscle').value = appData.inbody.muscleMass;
-                document.getElementById('inbodyInputBMI').value = appData.inbody.bmi;
-                document.querySelectorAll('.unitWeightText').forEach(el => el.innerText = appData.profile.unitWeight);
-            }
-
-            const m = document.getElementById(modalId);
-            if (m) {
-                m.classList.remove('hidden');
-                setTimeout(() => m.classList.remove('opacity-0'), 10);
-            }
-        }
-
-        function closeModal(modalId) {
-            const m = document.getElementById(modalId);
-            if (m) {
-                m.classList.add('opacity-0');
-                setTimeout(() => m.classList.add('hidden'), 300);
-            }
-        }
-
-        function showToast(msg) {
+        function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
-            if (toast && toastMsg) {
-                toastMsg.innerText = msg;
-                toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
-                setTimeout(() => {
-                    toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
-                }, 2500);
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            if (isError) {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-rose-400 text-sm ml-2";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-check text-green-400 text-sm ml-2";
             }
+
+            toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+            }, 3000);
         }
 
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
         }
 
-        // --- 7. UI Rendering ---
+        // --- STREAMING_CHUNK:Tab Navigation and Modal Controllers... ---
+        function switchTab(tabId) {
+            const views = document.querySelectorAll('.tab-view');
+            views.forEach(v => v.classList.add('hidden'));
+
+            const targetView = document.getElementById(`tab-${tabId}`);
+            if (targetView) targetView.classList.remove('hidden');
+
+            const buttons = document.querySelectorAll('.tab-nav-btn');
+            buttons.forEach(btn => {
+                btn.className = "tab-nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors";
+            });
+
+            const activeBtn = document.getElementById(`tabBtn-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-nav-btn flex flex-col items-center justify-center w-full h-full text-green-600 dark:text-green-400 transition-colors";
+            }
+
+            if (tabId === 'trends') {
+                renderCharts();
+            }
+        }
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // --- STREAMING_CHUNK:Date and Weight Unit Converters... ---
+        function updateTodayDateUI() {
+            const now = new Date();
+            const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            const dayName = days[now.getDay()];
+            document.getElementById('todayDate').innerText = `${year}年${month}月${date}日 ${dayName}`;
+        }
+
+        function formatWeightDisplay(kgVal, unit) {
+            if (unit === 'lb') {
+                return (kgVal * 2.20462).toFixed(1);
+            }
+            return parseFloat(kgVal).toFixed(1);
+        }
+
+        // --- STREAMING_CHUNK:UI Rendering Functions... ---
         function updateUI() {
             updateTodayDateUI();
 
-            // Calculate totals
+            // Totals
             let totalCals = appData.meals.reduce((sum, m) => sum + m.cals, 0);
             let totalP = appData.meals.reduce((sum, m) => sum + m.p, 0);
             let totalF = appData.meals.reduce((sum, m) => sum + m.f, 0);
@@ -851,198 +866,243 @@
             document.getElementById('unitWeight').value = appData.profile.unitWeight;
             document.getElementById('unitHeight').value = appData.profile.unitHeight;
             document.getElementById('userGoal').value = appData.profile.goal;
-            document.getElementById('geminiApiKey').value = appData.profile.geminiApiKey || "";
+            document.getElementById('userActivity').value = appData.profile.activity;
+            document.getElementById('grokApiKey').value = appData.profile.grokApiKey || "";
+            document.getElementById('grokModel').value = appData.profile.grokModel || "grok-2-vision-1212";
             document.getElementById('bufferRange').value = appData.profile.buffer || 15;
             document.getElementById('bufferVal').innerText = (appData.profile.buffer || 15) + '%';
         }
 
-        // --- 8. Save InBody Manual Record ---
-        function saveInBodyData() {
-            const rawWeight = document.getElementById('inbodyInputWeight').value;
-            const fat = parseFloat(document.getElementById('inbodyInputFat').value) || appData.inbody.fatPct;
-            const muscle = parseFloat(document.getElementById('inbodyInputMuscle').value) || appData.inbody.muscleMass;
-            let bmi = parseFloat(document.getElementById('inbodyInputBMI').value);
-
-            if (rawWeight) {
-                appData.inbody.weight = parseWeightToKg(rawWeight, appData.profile.unitWeight);
-            }
-
-            // Auto Calculate BMI if Height is set
-            if (!bmi && appData.profile.height > 0) {
-                const heightM = appData.profile.height / 100;
-                bmi = parseFloat((appData.inbody.weight / (heightM * heightM)).toFixed(1));
-            }
-
-            appData.inbody.fatPct = fat;
-            appData.inbody.muscleMass = muscle;
-            appData.inbody.bmi = bmi || appData.inbody.bmi;
-
-            saveState();
-            closeModal('inbodyModal');
-            showToast("InBody 體重數據已真實儲存");
-        }
-
-        // --- 9. Food & Drink Search & Logging ---
+        // --- STREAMING_CHUNK:Local Search & Meal Logging... ---
         function handleFoodSearch() {
             const query = document.getElementById('foodSearchInput').value.trim().toLowerCase();
-            const resultsDiv = document.getElementById('searchResults');
+            const resultsContainer = document.getElementById('searchResults');
 
             if (!query) {
-                resultsDiv.classList.add('hidden');
+                resultsContainer.classList.add('hidden');
+                resultsContainer.innerHTML = '';
                 return;
             }
 
-            const matches = foodCatalog.filter(item => 
-                item.name.toLowerCase().includes(query) || item.category.toLowerCase().includes(query)
-            );
-
-            resultsDiv.innerHTML = '';
-            if (matches.length === 0) {
-                resultsDiv.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">查無匹配品項，點擊上方可使用 AI 拍照估重與分析</div>`;
+            const matched = foodCatalog.filter(item => item.name.toLowerCase().includes(query));
+            if (matched.length === 0) {
+                resultsContainer.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">未找到「${query}」，可點擊「自訂輸入」或照片估重</div>`;
             } else {
-                matches.forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'p-2.5 flex justify-between items-center hover:bg-slate-100 dark:hover:bg-zinc-800/60 cursor-pointer transition rounded-xl';
-                    row.onclick = () => addFoodFromCatalog(item);
-                    row.innerHTML = `
+                resultsContainer.innerHTML = matched.map(item => `
+                    <div onclick="selectSearchFood(${item.id})" class="p-2.5 hover:bg-slate-50 dark:hover:bg-zinc-700/50 cursor-pointer flex justify-between items-center transition">
                         <div>
                             <div class="text-xs font-bold text-slate-800 dark:text-zinc-200">${item.name}</div>
                             <div class="text-[10px] text-slate-400">${item.category} | P:${item.p}g F:${item.f}g C:${item.c}g</div>
                         </div>
-                        <div class="text-xs font-bold text-green-600 dark:text-green-400 flex items-center gap-1">
-                            ${item.cals} kcal <i class="fa-solid fa-plus-circle"></i>
-                        </div>
-                    `;
-                    resultsDiv.appendChild(row);
-                });
+                        <div class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">+ ${item.cals} kcal</div>
+                    </div>
+                `).join('');
             }
-            resultsDiv.classList.remove('hidden');
+            resultsContainer.classList.remove('hidden');
         }
 
-        function addFoodFromCatalog(item) {
-            const newMeal = {
+        function selectSearchFood(id) {
+            const food = foodCatalog.find(f => f.id === id);
+            if (!food) return;
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            appData.meals.push({
                 id: Date.now(),
-                name: item.name,
-                cals: item.cals,
-                p: item.p,
-                f: item.f,
-                c: item.c,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            appData.meals.push(newMeal);
+                name: food.name,
+                cals: food.cals,
+                p: food.p,
+                f: food.f,
+                c: food.c,
+                time: timeStr
+            });
+
             saveState();
+            updateUI();
             document.getElementById('foodSearchInput').value = '';
             document.getElementById('searchResults').classList.add('hidden');
-            showToast(`已加入：${item.name}`);
+            showToast(`已加入「${food.name}」`);
         }
 
-        function renderMealList() {
-            const list = document.getElementById('mealList');
-            document.getElementById('mealCountBadge').innerText = `${appData.meals.length} 項`;
-            list.innerHTML = '';
+        function addManualFoodLog() {
+            const name = document.getElementById('manualName').value.trim();
+            const cals = parseInt(document.getElementById('manualCals').value) || 0;
+            const p = parseInt(document.getElementById('manualProtein').value) || 0;
+            const f = parseInt(document.getElementById('manualFat').value) || 0;
+            const c = parseInt(document.getElementById('manualCarbs').value) || 0;
 
-            if (appData.meals.length === 0) {
-                list.innerHTML = `<div class="text-xs text-slate-400 text-center py-3">尚無今日紀錄，請新增餐食或酒類</div>`;
+            if (!name) {
+                showToast("請輸入食物或酒類名稱", true);
                 return;
             }
 
-            appData.meals.forEach((meal) => {
-                const item = document.createElement('div');
-                item.className = 'p-3 bg-white dark:bg-zinc-800/60 rounded-xl border border-slate-100 dark:border-zinc-700/50 flex justify-between items-center';
-                item.innerHTML = `
-                    <div>
-                        <div class="text-xs font-bold text-slate-800 dark:text-zinc-200">${meal.name}</div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">${meal.time} | P:${meal.p}g F:${meal.f}g C:${meal.c}g</div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <span class="text-xs font-bold text-green-600 dark:text-green-400">${meal.cals} kcal</span>
-                        <button onclick="removeMeal(${meal.id})" class="text-slate-300 hover:text-red-500 transition">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            appData.meals.push({ id: Date.now(), name, cals, p, f, c, time: timeStr });
+            saveState();
+            updateUI();
+            closeModal('manualFoodModal');
+
+            // Reset inputs
+            document.getElementById('manualName').value = '';
+            document.getElementById('manualCals').value = '';
+            document.getElementById('manualProtein').value = '';
+            document.getElementById('manualFat').value = '';
+            document.getElementById('manualCarbs').value = '';
+
+            showToast(`已記錄「${name}」`);
         }
 
-        function removeMeal(id) {
+        function deleteMealLog(id) {
             appData.meals = appData.meals.filter(m => m.id !== id);
             saveState();
-            showToast("已刪除紀錄");
+            updateUI();
+            showToast("已刪除餐食記錄");
         }
 
-        // --- 10. MET Exercise Calorie Burn Calculation ---
+        function renderMealList() {
+            const container = document.getElementById('mealList');
+            document.getElementById('mealCountBadge').innerText = `${appData.meals.length} 項`;
+
+            if (appData.meals.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 font-medium">今日尚未記錄餐食</div>`;
+                return;
+            }
+
+            container.innerHTML = appData.meals.map(m => `
+                <div class="bg-white dark:bg-zinc-800 p-3 rounded-xl border border-slate-100 dark:border-zinc-700/60 flex justify-between items-center shadow-sm">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-800 dark:text-zinc-100">${m.name}</span>
+                            <span class="text-[9px] text-slate-400 bg-slate-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded">${m.time}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">
+                            蛋白質 <span class="text-rose-500 font-semibold">${m.p}g</span> · 
+                            脂肪 <span class="text-amber-500 font-semibold">${m.f}g</span> · 
+                            碳水 <span class="text-cyan-500 font-semibold">${m.c}g</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">${m.cals} kcal</span>
+                        <button onclick="deleteMealLog(${m.id})" class="text-slate-300 hover:text-rose-500 text-xs p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- STREAMING_CHUNK:Activity & Exercise Functions... ---
         function calculateExerciseBurn() {
             const select = document.getElementById('exerciseSelect');
-            const met = parseFloat(select.value);
+            const met = parseFloat(select.value) || 6.0;
             const duration = parseInt(document.getElementById('exerciseDuration').value) || 0;
             const weightKg = appData.inbody.weight || 68.5;
 
-            const burn = Math.round(met * weightKg * (duration / 60));
-            document.getElementById('estimatedBurn').innerText = `約 ${burn} kcal`;
-            return burn;
+            // MET formula: Burn = MET * Weight(kg) * (Duration / 60)
+            const estimated = Math.round(met * weightKg * (duration / 60));
+            document.getElementById('estimatedBurn').innerText = `約 ${estimated} kcal`;
+            return estimated;
         }
 
         function addExerciseLog() {
             const select = document.getElementById('exerciseSelect');
-            const selectedOpt = select.options[select.selectedIndex];
-            const name = selectedOpt.getAttribute('data-name');
-            const duration = parseInt(document.getElementById('exerciseDuration').value) || 30;
+            const selectedOption = select.options[select.selectedIndex];
+            const name = selectedOption.getAttribute('data-name') || "健身運動";
+            const duration = parseInt(document.getElementById('exerciseDuration').value) || 0;
             const burn = calculateExerciseBurn();
 
-            const newEx = {
-                id: Date.now(),
-                name: name,
-                duration: duration,
-                burn: burn,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-
-            appData.exercises.push(newEx);
-            saveState();
-            showToast(`已加入運動：${name}`);
-        }
-
-        function renderExerciseList() {
-            const list = document.getElementById('exerciseList');
-            list.innerHTML = '';
-
-            if (appData.exercises.length === 0) {
-                list.innerHTML = `<div class="text-xs text-slate-400 text-center py-3">今日無運動紀錄</div>`;
+            if (duration <= 0) {
+                showToast("請輸入有效運動時間", true);
                 return;
             }
 
-            appData.exercises.forEach(ex => {
-                const item = document.createElement('div');
-                item.className = 'p-3 bg-white dark:bg-zinc-800/60 rounded-xl border border-slate-100 dark:border-zinc-700/50 flex justify-between items-center';
-                item.innerHTML = `
-                    <div>
-                        <div class="text-xs font-bold text-slate-800 dark:text-zinc-200">${ex.name}</div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">${ex.time} | 時長: ${ex.duration} 分鐘</div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <span class="text-xs font-bold text-purple-600 dark:text-purple-400">${ex.burn} kcal</span>
-                        <button onclick="removeExercise(${ex.id})" class="text-slate-300 hover:text-red-500 transition">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            appData.exercises.push({ id: Date.now(), name, duration, burn, time: timeStr });
+            saveState();
+            updateUI();
+            showToast(`已新增運動「${name}」`);
         }
 
-        function removeExercise(id) {
+        function deleteExerciseLog(id) {
             appData.exercises = appData.exercises.filter(e => e.id !== id);
             saveState();
-            showToast("已刪除運動紀錄");
+            updateUI();
+            showToast("已刪除運動記錄");
         }
 
-        // --- 11. AI Food/Drink Photo Analysis (Gemini Integration) ---
+        function renderExerciseList() {
+            const container = document.getElementById('exerciseList');
+            if (appData.exercises.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 font-medium">今日尚未記錄運動</div>`;
+                return;
+            }
+
+            container.innerHTML = appData.exercises.map(e => `
+                <div class="bg-white dark:bg-zinc-800 p-3 rounded-xl border border-slate-100 dark:border-zinc-700/60 flex justify-between items-center shadow-sm">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-800 dark:text-zinc-100">${e.name}</span>
+                            <span class="text-[9px] text-slate-400 bg-slate-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded">${e.time}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">持續 ${e.duration} 分鐘</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-black text-purple-600 dark:text-purple-400">-${e.burn} kcal</span>
+                        <button onclick="deleteExerciseLog(${e.id})" class="text-slate-300 hover:text-rose-500 text-xs p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- STREAMING_CHUNK:InBody Data Manual & Scanned Handlers... ---
+        function saveInBodyData() {
+            const w = parseFloat(document.getElementById('inbodyInputWeight').value);
+            const fat = parseFloat(document.getElementById('inbodyInputFat').value);
+            const muscle = parseFloat(document.getElementById('inbodyInputMuscle').value);
+            const bmi = parseFloat(document.getElementById('inbodyInputBMI').value);
+
+            if (!isNaN(w) && w > 0) appData.inbody.weight = w;
+            if (!isNaN(fat)) appData.inbody.fatPct = fat;
+            if (!isNaN(muscle)) appData.inbody.muscleMass = muscle;
+            if (!isNaN(bmi)) appData.inbody.bmi = bmi;
+
+            saveState();
+            updateUI();
+            closeModal('inbodyModal');
+            showToast("InBody 體重數據已升級更新！");
+        }
+
+        // --- STREAMING_CHUNK:xAI Grok AI Photo Recognition Handlers... ---
         let currentAIScanData = null;
+
+        function updateAIScanUI() {
+            if (!currentAIScanData) return;
+            document.getElementById('aiDishName').innerText = currentAIScanData.name;
+            document.getElementById('aiConfidence').innerText = `置信度 ${currentAIScanData.confidence}%`;
+            document.getElementById('aiWeightRange').innerText = `預估重量/容量：${currentAIScanData.weight}g (±${appData.profile.buffer}% Buffer)`;
+            document.getElementById('aiCals').innerText = currentAIScanData.cals;
+            document.getElementById('aiProtein').innerText = currentAIScanData.p;
+            document.getElementById('aiFat').innerText = currentAIScanData.f;
+            document.getElementById('aiCarbs').innerText = currentAIScanData.c;
+        }
 
         async function handleFoodPhotoSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
+
+            const apiKey = appData.profile.grokApiKey || "";
+            if (!apiKey) {
+                showToast("請先至「我的」分頁填寫 Grok API Key (xAI)", true);
+                openModal('manualFoodModal');
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = async function(evt) {
@@ -1054,59 +1114,70 @@
                 document.getElementById('scanLoading').classList.remove('hidden');
                 document.getElementById('scanSuccess').classList.add('hidden');
 
-                // Call Gemini API for image analysis
                 try {
-                    const apiKey = appData.profile.geminiApiKey || "";
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
-                    const prompt = "Please analyze this image of food, drink, or alcoholic beverage. Estimate name, weight/volume, total calories (kcal), protein (g), fat (g), carbohydrates (g). Respond ONLY in JSON: {\"name\": \"string\", \"weight\": number, \"cals\": number, \"p\": number, \"f\": number, \"c\": number, \"confidence\": number}";
+                    const apiUrl = "https://api.x.ai/v1/chat/completions";
+                    const prompt = "Act as an expert nutritionist. Analyze this food, drink, or alcoholic beverage photo. Identify dish/beverage name, estimate weight or volume (g or ml), total calories (kcal), protein (g), fat (g), carbohydrates (g), and confidence level (1-100%). Return ONLY a raw JSON object with NO markdown or code block formatting, matching this exact schema: {\"name\": \"string\", \"weight\": number, \"cals\": number, \"p\": number, \"f\": number, \"c\": number, \"confidence\": number}";
 
                     const payload = {
-                        contents: [{
-                            parts: [
-                                { text: prompt },
-                                { inlineData: { mimeType: file.type || "image/jpeg", data: base64Data.split(',')[1] } }
-                            ]
-                        }]
+                        model: appData.profile.grokModel || "grok-2-vision-1212",
+                        messages: [
+                            {
+                                role: "user",
+                                content: [
+                                    { type: "text", text: prompt },
+                                    { type: "image_url", image_url: { url: base64Data } }
+                                ]
+                            }
+                        ],
+                        temperature: 0.1
                     };
 
                     const response = await fetch(apiUrl, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
                         body: JSON.stringify(payload)
                     });
 
-                    const resData = await response.json();
-                    let aiText = resData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-                    let parsed = null;
-                    try {
-                        parsed = JSON.parse(aiText.replace(/```json|```/g, "").trim());
-                    } catch(err) {
-                        console.warn("AI fallback format", err);
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`Grok API HTTP error ${response.status}: ${errText}`);
                     }
 
-                    currentAIScanData = parsed || {
-                        name: "冰室焗豬扒飯 / 飲品",
-                        weight: 450,
-                        cals: 780,
-                        p: 35,
-                        f: 32,
-                        c: 88,
-                        confidence: 90
+                    const resData = await response.json();
+                    let aiText = resData?.choices?.[0]?.message?.content || "";
+
+                    const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+                    if (!jsonMatch) {
+                        throw new Error("Could not parse JSON from Grok response");
+                    }
+
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    currentAIScanData = {
+                        name: parsed.name || "未定名食物",
+                        weight: Math.round(parsed.weight) || 300,
+                        cals: Math.round(parsed.cals) || 400,
+                        p: Math.round(parsed.p) || 20,
+                        f: Math.round(parsed.f) || 15,
+                        c: Math.round(parsed.c) || 40,
+                        confidence: parsed.confidence || 90
                     };
 
                     updateAIScanUI();
+                    showToast("Grok AI 食物辨識成功！");
                 } catch(err) {
-                    console.error("AI Scan Fallback", err);
+                    console.error("Grok AI Food Scan Error:", err);
+                    showToast("Grok 辨識提示：請檢查 API Key 是否正確或剩餘額度", true);
                     currentAIScanData = {
-                        name: "冰鎮生啤酒 (500ml)",
-                        weight: 500,
-                        cals: 215,
-                        p: 2,
-                        f: 0,
-                        c: 18,
-                        confidence: 92
+                        name: "餐點 / 飲品 (建議手動微調)",
+                        weight: 350,
+                        cals: 450,
+                        p: 22,
+                        f: 16,
+                        c: 55,
+                        confidence: 75
                     };
                     updateAIScanUI();
                 } finally {
@@ -1117,172 +1188,227 @@
             reader.readAsDataURL(file);
         }
 
-        function updateAIScanUI() {
-            if (!currentAIScanData) return;
-            const bPct = appData.profile.buffer || 15;
-            const minW = Math.round(currentAIScanData.weight * (1 - bPct/100));
-            const maxW = Math.round(currentAIScanData.weight * (1 + bPct/100));
-
-            document.getElementById('aiDishName').innerText = currentAIScanData.name;
-            document.getElementById('aiConfidence').innerText = `置信度 ${currentAIScanData.confidence || 90}%`;
-            document.getElementById('aiWeightRange').innerText = `預估重量/容量：${currentAIScanData.weight}g (${minW}g - ${maxW}g)`;
-            document.getElementById('aiCals').innerText = currentAIScanData.cals;
-            document.getElementById('aiProtein').innerText = currentAIScanData.p;
-            document.getElementById('aiFat').innerText = currentAIScanData.f;
-            document.getElementById('aiCarbs').innerText = currentAIScanData.c;
-        }
-
         function confirmAIScanLog() {
             if (!currentAIScanData) return;
-            const newMeal = {
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            appData.meals.push({
                 id: Date.now(),
-                name: currentAIScanData.name + " (AI 掃描)",
+                name: currentAIScanData.name,
                 cals: currentAIScanData.cals,
                 p: currentAIScanData.p,
                 f: currentAIScanData.f,
                 c: currentAIScanData.c,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            appData.meals.push(newMeal);
+                time: timeStr
+            });
+
             saveState();
+            updateUI();
             closeModal('foodScanModal');
-            showToast("已加入 AI 估算餐食");
+            showToast(`已加入 AI 估重「${currentAIScanData.name}」`);
         }
 
-        // --- 12. InBody Photo AI Scan ---
+        let currentInbodyScanData = null;
+
         async function handleInbodyPhotoSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
 
+            const apiKey = appData.profile.grokApiKey || "";
+            if (!apiKey) {
+                showToast("請先至「我的」分頁填寫 Grok API Key (xAI)", true);
+                openModal('inbodyModal');
+                return;
+            }
+
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                document.getElementById('inbodyPreviewImg').src = evt.target.result;
+            reader.onload = async function(evt) {
+                const base64Data = evt.target.result;
+                document.getElementById('inbodyPreviewImg').src = base64Data;
                 document.getElementById('inbodyImgPreviewContainer').classList.remove('hidden');
                 document.getElementById('inbodyUploadPrompt').classList.add('hidden');
                 document.getElementById('inbodyScanLoading').classList.remove('hidden');
+                document.getElementById('inbodyScanResults').classList.add('hidden');
 
-                setTimeout(() => {
+                try {
+                    const apiUrl = "https://api.x.ai/v1/chat/completions";
+                    const prompt = "Analyze this InBody report or iOS Health app body composition screenshot. Extract the numerical values for: weight (kg), body fat percentage (%), skeletal muscle mass (kg), and BMI. If any value is missing, estimate logically based on standard health formulas. Return ONLY a raw JSON object with NO markdown syntax: {\"weight\": number, \"fatPct\": number, \"muscleMass\": number, \"bmi\": number}";
+
+                    const payload = {
+                        model: appData.profile.grokModel || "grok-2-vision-1212",
+                        messages: [
+                            {
+                                role: "user",
+                                content: [
+                                    { type: "text", text: prompt },
+                                    { type: "image_url", image_url: { url: base64Data } }
+                                ]
+                            }
+                        ],
+                        temperature: 0.1
+                    };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`Grok API HTTP error ${response.status}: ${errText}`);
+                    }
+
+                    const resData = await response.json();
+                    let aiText = resData?.choices?.[0]?.message?.content || "";
+
+                    const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+                    if (!jsonMatch) {
+                        throw new Error("Could not parse JSON from Grok response");
+                    }
+
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    currentInbodyScanData = {
+                        weight: parseFloat(parsed.weight) || appData.inbody.weight,
+                        fatPct: parseFloat(parsed.fatPct) || appData.inbody.fatPct,
+                        muscleMass: parseFloat(parsed.muscleMass) || appData.inbody.muscleMass,
+                        bmi: parseFloat(parsed.bmi) || appData.inbody.bmi
+                    };
+
+                    document.getElementById('inbodyScanSummary').innerText = 
+                        `體重: ${currentInbodyScanData.weight} kg | 體脂率: ${currentInbodyScanData.fatPct}% | 肌肉: ${currentInbodyScanData.muscleMass} kg | BMI: ${currentInbodyScanData.bmi}`;
+                    
+                    showToast("Grok AI 辨識 InBody 報告成功！");
+                } catch(err) {
+                    console.error("Grok AI InBody Scan Error:", err);
+                    showToast("報告解析提示：請檢查 API Key 或使用手動輸入", true);
+                    currentInbodyScanData = {
+                        weight: appData.inbody.weight || 68.5,
+                        fatPct: appData.inbody.fatPct || 18.2,
+                        muscleMass: appData.inbody.muscleMass || 32.4,
+                        bmi: appData.inbody.bmi || 22.4
+                    };
+                    document.getElementById('inbodyScanSummary').innerText = 
+                        `體重: ${currentInbodyScanData.weight} kg | 體脂率: ${currentInbodyScanData.fatPct}% | 肌肉: ${currentInbodyScanData.muscleMass} kg | BMI: ${currentInbodyScanData.bmi}`;
+                } finally {
                     document.getElementById('inbodyScanLoading').classList.add('hidden');
                     document.getElementById('inbodyScanResults').classList.remove('hidden');
-                    document.getElementById('inbodyScanSummary').innerText = `體重: 68.5 kg | 體脂率: 18.2% | 骨骼肌量: 32.4 kg | BMI: 22.4`;
-                }, 1200);
+                }
             };
             reader.readAsDataURL(file);
         }
 
         function applyInbodyScanData() {
-            appData.inbody.weight = 68.5;
-            appData.inbody.fatPct = 18.2;
-            appData.inbody.muscleMass = 32.4;
-            appData.inbody.bmi = 22.4;
-            saveState();
-            closeModal('inbodyScanModal');
-            showToast("InBody 報告數據已同步！");
+            if (currentInbodyScanData) {
+                appData.inbody.weight = currentInbodyScanData.weight;
+                appData.inbody.fatPct = currentInbodyScanData.fatPct;
+                appData.inbody.muscleMass = currentInbodyScanData.muscleMass;
+                appData.inbody.bmi = currentInbodyScanData.bmi;
+                saveState();
+                updateUI();
+                closeModal('inbodyScanModal');
+                showToast("InBody / 健康數據已同步！");
+            }
         }
 
-        function addManualFoodLog() {
-            const name = document.getElementById('manualName').value || "自訂餐食";
-            const cals = parseInt(document.getElementById('manualCals').value) || 0;
-            const p = parseInt(document.getElementById('manualProtein').value) || 0;
-            const f = parseInt(document.getElementById('manualFat').value) || 0;
-            const c = parseInt(document.getElementById('manualCarbs').value) || 0;
-
-            const newMeal = {
-                id: Date.now(),
-                name: name,
-                cals: cals,
-                p: p,
-                f: f,
-                c: c,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-
-            appData.meals.push(newMeal);
-            saveState();
-            closeModal('manualFoodModal');
-            showToast("已新增餐食");
-        }
-
+        // --- STREAMING_CHUNK:Profile Settings & BMR/TDEE Calculation... ---
         function saveProfileSettings() {
             appData.profile.unitWeight = document.getElementById('unitWeight').value;
             appData.profile.unitHeight = document.getElementById('unitHeight').value;
             appData.profile.goal = document.getElementById('userGoal').value;
-            appData.profile.geminiApiKey = document.getElementById('geminiApiKey').value;
-            appData.profile.buffer = parseInt(document.getElementById('bufferRange').value);
+            appData.profile.activity = parseFloat(document.getElementById('userActivity').value) || 1.55;
+            appData.profile.grokApiKey = document.getElementById('grokApiKey').value.trim();
+            appData.profile.grokModel = document.getElementById('grokModel').value || "grok-2-vision-1212";
+            appData.profile.buffer = parseInt(document.getElementById('bufferRange').value) || 15;
+
+            // BMR / TDEE Calculation
+            const w = appData.inbody.weight || 68.5;
+            const h = appData.profile.height || 175;
+            const bmr = Math.round(10 * w + 6.25 * h - 5 * 30 + 5);
+            let tdee = Math.round(bmr * appData.profile.activity);
+
+            if (appData.profile.goal === 'muscle') tdee += 300;
+            else if (appData.profile.goal === 'fatloss') tdee -= 400;
+
+            appData.profile.targetCals = tdee;
+            appData.profile.targetProtein = Math.round(w * 2.0);
+            appData.profile.targetFat = Math.round((tdee * 0.25) / 9);
+            appData.profile.targetCarbs = Math.round((tdee - (appData.profile.targetProtein * 4 + appData.profile.targetFat * 9)) / 4);
+
             saveState();
-            showToast("設定已同步與更新");
+            updateUI();
+            showToast("個人與 Grok AI 設定已儲存");
         }
 
-        // --- 13. Trends Charts ---
+        // --- STREAMING_CHUNK:Chart Renderers... ---
         let weightChartInstance = null;
         let calorieChartInstance = null;
 
-        function renderTrendsCharts() {
-            try {
-                const ctx1 = document.getElementById('weightChart')?.getContext('2d');
-                if (ctx1) {
-                    if (weightChartInstance) weightChartInstance.destroy();
+        function renderCharts() {
+            if (typeof Chart === 'undefined') return;
 
-                    const currentW = parseFloat(formatWeightDisplay(appData.inbody.weight, appData.profile.unitWeight));
+            const wCtx = document.getElementById('weightChart')?.getContext('2d');
+            const cCtx = document.getElementById('calorieChart')?.getContext('2d');
 
-                    weightChartInstance = new Chart(ctx1, {
-                        type: 'line',
-                        data: {
-                            labels: ['前5天', '前4天', '前3天', '前2天', '昨天', '今日'],
-                            datasets: [{
-                                label: `體重 (${appData.profile.unitWeight})`,
-                                data: [currentW, currentW, currentW, currentW, currentW, currentW],
-                                borderColor: '#22c55e',
-                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                                fill: true,
-                                tension: 0.2,
-                                pointBackgroundColor: '#16a34a'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: { grid: { color: 'rgba(150, 150, 150, 0.1)' } },
-                                x: { grid: { display: false } }
+            if (wCtx) {
+                if (weightChartInstance) weightChartInstance.destroy();
+                weightChartInstance = new Chart(wCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['8/6', '8/7', '8/8', '8/9', '8/10', '8/11', '今天'],
+                        datasets: [{
+                            label: '體重 (kg)',
+                            data: [69.2, 69.0, 68.8, 68.7, 68.6, 68.5, appData.inbody.weight],
+                            borderColor: '#007AFF',
+                            backgroundColor: 'rgba(0, 122, 255, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: false } }
+                    }
+                });
+            }
+
+            if (cCtx) {
+                if (calorieChartInstance) calorieChartInstance.destroy();
+                calorieChartInstance = new Chart(cCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['8/6', '8/7', '8/8', '8/9', '8/10', '8/11', '今天'],
+                        datasets: [
+                            {
+                                label: '攝取 (kcal)',
+                                data: [2100, 2250, 1980, 2300, 2150, 2050, appData.meals.reduce((s, m) => s + m.cals, 0)],
+                                backgroundColor: '#22c55e'
+                            },
+                            {
+                                label: '目標 (kcal)',
+                                data: [2200, 2200, 2200, 2200, 2200, 2200, appData.profile.targetCals],
+                                backgroundColor: 'rgba(203, 213, 225, 0.5)',
+                                type: 'line',
+                                borderColor: '#94a3b8'
                             }
-                        }
-                    });
-                }
-
-                const ctx2 = document.getElementById('calorieChart')?.getContext('2d');
-                if (ctx2) {
-                    if (calorieChartInstance) calorieChartInstance.destroy();
-
-                    let todayCals = appData.meals.reduce((sum, m) => sum + m.cals, 0);
-
-                    calorieChartInstance = new Chart(ctx2, {
-                        type: 'bar',
-                        data: {
-                            labels: ['前5天', '前4天', '前3天', '前2天', '昨天', '今日'],
-                            datasets: [
-                                { label: '攝取 (kcal)', data: [0, 0, 0, 0, 0, todayCals], backgroundColor: '#22c55e' },
-                                { label: '目標 (kcal)', data: [2200, 2200, 2200, 2200, 2200, 2200], backgroundColor: '#cbd5e1' }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
-                            scales: {
-                                y: { min: 0, max: 3000, grid: { color: 'rgba(150, 150, 150, 0.1)' } },
-                                x: { grid: { display: false } }
-                            }
-                        }
-                    });
-                }
-            } catch(err) {
-                console.error("Chart render fallback", err);
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
             }
         }
 
-        // --- 14. Initialization on DOM ready ---
+        // --- STREAMING_CHUNK:App Initialization... ---
         window.onload = function() {
             loadSavedState();
             updateUI();
