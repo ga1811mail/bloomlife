@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BloomLife 2 - 健身與飲食記錄 Web App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Trends -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        ios: {
+                            blue: '#007AFF',
+                            green: '#34C759',
+                            orange: '#FF9500',
+                            red: '#FF3B30',
+                            purple: '#AF52DE',
+                            cardLight: '#FFFFFF',
+                            cardDark: '#1C1C1E',
+                            bgLight: '#F2F2F7',
+                            bgDark: '#000000',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .ring-progress {
+            transition: stroke-dashoffset 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-ios-bgLight dark:bg-ios-bgDark text-slate-900 dark:text-zinc-100 h-full flex justify-center items-center font-sans transition-colors duration-200">
+
+    <!-- Mobile Frame Wrapper for Desktop, Fullscreen on Mobile -->
+    <div id="appContainer" class="w-full max-w-md h-full sm:h-[92vh] sm:rounded-[40px] bg-white dark:bg-zinc-950 flex flex-col shadow-2xl overflow-hidden relative border border-slate-200 dark:border-zinc-800">
+
+        <!-- Toast Notification Container -->
+        <div id="toast" class="absolute top-12 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4 w-[90%] max-w-xs">
+            <div id="toastContent" class="bg-slate-900/90 dark:bg-zinc-800/90 text-white text-xs px-4 py-3 rounded-2xl shadow-xl backdrop-blur-md flex items-center justify-between border border-white/10">
+                <span id="toastMsg">訊息內容</span>
+                <i class="fa-solid fa-circle-check text-green-400 text-sm ml-2" id="toastIcon"></i>
+            </div>
+        </div>
+
+        <!-- Dynamic Header -->
+        <header class="px-5 pt-10 pb-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-slate-100 dark:border-zinc-800 flex justify-between items-center z-10 shrink-0">
+            <div>
+                <span class="text-[10px] font-bold tracking-wider text-green-600 dark:text-green-400 uppercase">HOPEFITNESS X2</span>
+                <h1 id="headerTitle" class="text-xl font-extrabold text-slate-900 dark:text-white">BloomLife 2</h1>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleDarkMode()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 flex items-center justify-center hover:bg-slate-200 transition-colors">
+                    <i class="fa-solid fa-moon text-xs dark:hidden"></i>
+                    <i class="fa-solid fa-sun text-xs hidden dark:block text-amber-400"></i>
+                </button>
+                <div id="headerBadge" class="px-2 py-1 rounded-full bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-300 text-[10px] font-semibold">
+                    InBody 同步
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Views Area -->
+        <main class="flex-grow overflow-y-auto no-scrollbar p-4 space-y-5 pb-24" id="mainContent">
+
+            <!-- TAB 1: TODAY (今日概覽) -->
+            <section id="tab-today" class="tab-view space-y-4">
+                <!-- Humorous Goal Motivation Banner -->
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-15 text-7xl"><i class="fa-solid fa-fire"></i></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-center mb-1">
+                            <span id="todayGoalLabel" class="text-[11px] font-bold bg-white/20 px-2.5 py-0.5 rounded-full uppercase tracking-wide">增肌模式中</span>
+                            <span id="todayDate" class="text-xs text-emerald-100">8月12日 週二</span>
+                        </div>
+                        <p id="todayMotivation" class="text-sm font-semibold mt-2 leading-snug">
+                            "今日蛋白質已達標 80%！肌肉正在角落偷偷微笑，繼續保持！"
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Weight & InBody Card -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-slate-500 dark:text-zinc-400 font-medium">最新體重 (InBody 優先)</span>
+                        <div class="flex items-baseline space-x-1.5 mt-0.5">
+                            <span id="dashboardWeight" class="text-2xl font-black text-slate-900 dark:text-white">68.5</span>
+                            <span id="dashboardWeightUnit" class="text-xs text-slate-500 font-semibold">kg</span>
+                            <span id="dashboardInbodyTag" class="text-[10px] bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold ml-1">InBody</span>
+                        </div>
+                    </div>
+                    <button onclick="updateInBodySimulated()" class="px-3 py-2 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95">
+                        <i class="fa-solid fa-rotate text-xs"></i> 更新 InBody
+                    </button>
+                </div>
+
+                <!-- Daily Calories & Macros Overview -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">每日熱量進度</h3>
+                        <span id="calorieTargetSummary" class="text-xs font-bold text-slate-800 dark:text-zinc-200">1450 / 2200 kcal</span>
+                    </div>
+
+                    <!-- Calorie Main Progress Bar -->
+                    <div class="w-full bg-slate-200 dark:bg-zinc-800 rounded-full h-3 overflow-hidden">
+                        <div id="calorieProgressBar" class="bg-gradient-to-r from-green-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 65%;"></div>
+                    </div>
+
+                    <!-- Macro Breakdown Rings/Bars -->
+                    <div class="grid grid-cols-3 gap-2 pt-1">
+                        <!-- Protein -->
+                        <div class="bg-white dark:bg-zinc-800/60 p-2.5 rounded-xl text-center border border-slate-100 dark:border-zinc-700/50">
+                            <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold">蛋白質</span>
+                            <div class="text-xs font-black text-rose-500 my-0.5" id="pProgressText">110g</div>
+                            <div class="w-full bg-slate-100 dark:bg-zinc-700 rounded-full h-1.5 overflow-hidden">
+                                <div id="pBar" class="bg-rose-500 h-full rounded-full" style="width: 75%;"></div>
+                            </div>
+                            <span class="text-[9px] text-slate-400 mt-1 block" id="pTargetText">目標 140g</span>
+                        </div>
+                        <!-- Fat -->
+                        <div class="bg-white dark:bg-zinc-800/60 p-2.5 rounded-xl text-center border border-slate-100 dark:border-zinc-700/50">
+                            <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold">脂肪</span>
+                            <div class="text-xs font-black text-amber-500 my-0.5" id="fProgressText">42g</div>
+                            <div class="w-full bg-slate-100 dark:bg-zinc-700 rounded-full h-1.5 overflow-hidden">
+                                <div id="fBar" class="bg-amber-500 h-full rounded-full" style="width: 60%;"></div>
+                            </div>
+                            <span class="text-[9px] text-slate-400 mt-1 block" id="fTargetText">目標 70g</span>
+                        </div>
+                        <!-- Carbs -->
+                        <div class="bg-white dark:bg-zinc-800/60 p-2.5 rounded-xl text-center border border-slate-100 dark:border-zinc-700/50">
+                            <span class="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold">碳水化合物</span>
+                            <div class="text-xs font-black text-cyan-500 my-0.5" id="cProgressText">160g</div>
+                            <div class="w-full bg-slate-100 dark:bg-zinc-700 rounded-full h-1.5 overflow-hidden">
+                                <div id="cBar" class="bg-cyan-500 h-full rounded-full" style="width: 64%;"></div>
+                            </div>
+                            <span class="text-[9px] text-slate-400 mt-1 block" id="cTargetText">目標 250g</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Steps & Workout Burn Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 dark:bg-zinc-900/90 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/80 flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-orange-500 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-shoe-prints text-base"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-medium">每日步數 (Health)</span>
+                            <div class="text-base font-bold text-slate-800 dark:text-white" id="todaySteps">8,420</div>
+                            <span class="text-[9px] text-orange-500 font-semibold">約 310 kcal</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 dark:bg-zinc-900/90 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/80 flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-500 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-stopwatch text-base"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-medium">主動運動消耗</span>
+                            <div class="text-base font-bold text-slate-800 dark:text-white" id="todayWorkoutBurn">420 kcal</div>
+                            <span class="text-[9px] text-purple-500 font-semibold" id="todayWorkoutTime">45 分鐘</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: NUTRITION (飲食紀錄 & AI 估重) -->
+            <section id="tab-nutrition" class="tab-view hidden space-y-4">
+                
+                <!-- Quick Log Action Selector -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="openModal('foodScanModal')" class="p-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl shadow flex items-center justify-center space-x-2 active:scale-95 transition">
+                        <i class="fa-solid fa-camera"></i>
+                        <span class="text-xs font-bold">Grok 拍照估重</span>
+                    </button>
+                    <button onclick="openModal('manualFoodModal')" class="p-3 bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 rounded-2xl flex items-center justify-center space-x-2 active:scale-95 transition">
+                        <i class="fa-solid fa-utensils text-green-500"></i>
+                        <span class="text-xs font-bold">搜尋 / 自訂紀錄</span>
+                    </button>
+                </div>
+
+                <!-- Instant Local Search Bar (Cha Chaan Teng & My List) -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">茶餐廳 & 本地即時搜尋</h3>
+                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full font-semibold">230+ 款菜單索引</span>
+                    </div>
+
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="foodSearchInput" oninput="handleFoodSearch()" placeholder="搜尋：菠蘿油, 蛋撻, 乾炒牛河, 凍檸茶..." class="w-full pl-9 pr-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+
+                    <!-- Search Results Area -->
+                    <div id="searchResults" class="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-800 hidden">
+                        <!-- Dynamic items will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Today's Logged Meals List -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">今日餐食紀錄</h3>
+                        <span id="mealCountBadge" class="text-xs font-semibold text-slate-400">3 項</span>
+                    </div>
+
+                    <div id="mealList" class="space-y-2">
+                        <!-- Dynamic list items -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: ACTIVITY (運動紀錄) -->
+            <section id="tab-activity" class="tab-view hidden space-y-4">
+                
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">新增運動項目</h3>
+                    
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-semibold text-slate-600 dark:text-zinc-400">選擇運動類型 (MET 自動算卡路里)</label>
+                        <select id="exerciseSelect" onchange="updateExerciseMET()" class="w-full p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="8.0" data-name="跑步 (中速 8km/h)">跑步 (中速 8km/h) - MET 8.0</option>
+                            <option value="6.0" data-name="重量訓練 / 肌力">重量訓練 / 肌力 - MET 6.0</option>
+                            <option value="10.0" data-name="高強度間歇 (HIIT)">高強度間歇 (HIIT) - MET 10.0</option>
+                            <option value="7.0" data-name="游泳 (自由式)">游泳 (自由式) - MET 7.0</option>
+                            <option value="3.5" data-name="快走 (5.5km/h)">快走 (5.5km/h) - MET 3.5</option>
+                            <option value="4.0" data-name="瑜伽 / 伸展">瑜伽 / 伸展 - MET 4.0</option>
+                            <option value="8.5" data-name="羽毛球 / 籃球">羽毛球 / 籃球 - MET 8.5</option>
+                        </select>
+
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <div>
+                                <label class="text-[10px] text-slate-400 font-semibold">持續時間 (分鐘)</label>
+                                <input type="number" id="exerciseDuration" value="45" oninput="calculateExerciseBurn()" class="w-full mt-1 p-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-bold">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 font-semibold">預估消耗 (kcal)</label>
+                                <div id="estimatedBurn" class="w-full mt-1 p-2 bg-slate-100 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700/50 rounded-xl text-xs font-bold text-purple-600 dark:text-purple-400">
+                                    約 360 kcal
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="addExerciseLog()" class="w-full mt-2 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow active:scale-95">
+                            <i class="fa-solid fa-plus mr-1"></i> 加入運動記錄
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Activity History List -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">今日運動清單</h3>
+                    <div id="exerciseList" class="space-y-2">
+                        <!-- Dynamic exercises -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: TRENDS (趨勢與 InBody 數據) -->
+            <section id="tab-trends" class="tab-view hidden space-y-4">
+                
+                <!-- InBody Metrics Summary Cards -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-slate-50 dark:bg-zinc-900/90 p-3 rounded-2xl border border-slate-100 dark:border-zinc-800/80 text-center">
+                        <span class="text-[10px] text-slate-400 font-semibold">體脂率</span>
+                        <div class="text-sm font-black text-slate-800 dark:text-white mt-1" id="inbodyFat">18.2 %</div>
+                        <span class="text-[9px] text-emerald-500 font-medium">標準</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-zinc-900/90 p-3 rounded-2xl border border-slate-100 dark:border-zinc-800/80 text-center">
+                        <span class="text-[10px] text-slate-400 font-semibold">肌肉量 (Lean)</span>
+                        <div class="text-sm font-black text-slate-800 dark:text-white mt-1" id="inbodyMuscle">32.4 kg</div>
+                        <span class="text-[9px] text-blue-500 font-medium">+0.4kg ▲</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-zinc-900/90 p-3 rounded-2xl border border-slate-100 dark:border-zinc-800/80 text-center">
+                        <span class="text-[10px] text-slate-400 font-semibold">BMI 指數</span>
+                        <div class="text-sm font-black text-slate-800 dark:text-white mt-1" id="inbodyBMI">22.6</div>
+                        <span class="text-[9px] text-emerald-500 font-medium">健康</span>
+                    </div>
+                </div>
+
+                <!-- Weight Trend Chart -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">7 日體重趨勢 (kg)</h3>
+                        <span class="text-[10px] text-slate-400">Apple HealthKit 紀錄</span>
+                    </div>
+                    <div class="h-44 relative">
+                        <canvas id="weightChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Calorie Balance Chart -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 space-y-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">每日卡路里攝取 vs 消耗</h3>
+                    <div class="h-44 relative">
+                        <canvas id="calorieChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: PROFILE (個人資料與 Grok 設定) -->
+            <section id="tab-profile" class="tab-view hidden space-y-4">
+                
+                <!-- Profile Header -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white text-2xl font-bold shadow-md shrink-0">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 dark:text-white" id="profileName">Terry Lee</h2>
+                        <p class="text-xs text-slate-500 dark:text-zinc-400">目標：增肌維持 | BMR ~1650 kcal</p>
+                    </div>
+                </div>
+
+                <!-- Unit & Preference Settings -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">單位與個人數值設定</h3>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400">體重單位</label>
+                            <select id="unitWeight" onchange="saveProfileSettings()" class="w-full mt-1 p-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold">
+                                <option value="kg">kg (公斤)</option>
+                                <option value="lb">lb (磅)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400">身高單位</label>
+                            <select id="unitHeight" onchange="saveProfileSettings()" class="w-full mt-1 p-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold">
+                                <option value="cm">cm (公分)</option>
+                                <option value="ft">ft / in (英呎)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-xs pt-1">
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400">健身目標</label>
+                            <select id="userGoal" onchange="saveProfileSettings()" class="w-full mt-1 p-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold">
+                                <option value="muscle">增肌 (Muscle Gain)</option>
+                                <option value="fatloss">減脂 (Fat Loss)</option>
+                                <option value="maintain">維持 (Maintenance)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400">每日活動量</label>
+                            <select id="userActivity" onchange="saveProfileSettings()" class="w-full mt-1 p-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold">
+                                <option value="1.2">久坐 / 辦公室 (1.2)</option>
+                                <option value="1.375">輕度運動 (1.375)</option>
+                                <option value="1.55" selected>中度運動 (1.55)</option>
+                                <option value="1.725">高度運動 (1.725)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grok AI API & Buffer Settings Card -->
+                <div class="bg-slate-50 dark:bg-zinc-900/90 rounded-2xl p-4 border border-slate-100 dark:border-zinc-800/80 space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-microchip text-emerald-500"></i>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">xAI Grok Food Scan 設定</h3>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-semibold text-slate-400">xAI API Key (儲存於本機 LocalStorage)</label>
+                        <input type="password" id="grokApiKey" placeholder="xai-xxxxxxxxxxxxxx" onchange="saveProfileSettings()" class="w-full mt-1 p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-mono">
+                        <span class="text-[9px] text-slate-400 mt-1 block">填入 Key 即可解鎖真實 Grok AI 拍照估算營養與菜餚辨識功能。</span>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-semibold text-slate-400">預設估重 Buffer 區間 (±%)</label>
+                        <div class="flex items-center space-x-3 mt-1">
+                            <input type="range" id="grokBufferRange" min="5" max="50" value="15" oninput="document.getElementById('bufferVal').innerText = this.value + '%'; saveProfileSettings();" class="w-full accent-green-500">
+                            <span id="bufferVal" class="text-xs font-bold text-green-600 dark:text-green-400 w-12 text-right">15%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- iOS Style Bottom Tab Navigation Bar -->
+        <nav class="absolute bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-zinc-800 flex justify-around items-center px-2 z-20">
+            <button onclick="switchTab('today')" id="tabBtn-today" class="tab-nav-btn flex flex-col items-center justify-center w-full h-full text-green-600 dark:text-green-400 transition-colors">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">今日</span>
+            </button>
+            <button onclick="switchTab('nutrition')" id="tabBtn-nutrition" class="tab-nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                <i class="fa-solid fa-utensils text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">飲食</span>
+            </button>
+            <button onclick="switchTab('activity')" id="tabBtn-activity" class="tab-nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                <i class="fa-solid fa-dumbbell text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">運動</span>
+            </button>
+            <button onclick="switchTab('trends')" id="tabBtn-trends" class="tab-nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                <i class="fa-solid fa-chart-line text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">趨勢</span>
+            </button>
+            <button onclick="switchTab('profile')" id="tabBtn-profile" class="tab-nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                <i class="fa-solid fa-user text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">我的</span>
+            </button>
+        </nav>
+
+        <!-- MODAL 1: GROK FOOD SCAN (拍照估重 / 選擇圖片) -->
+        <div id="foodScanModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white dark:bg-zinc-900 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto border border-slate-200 dark:border-zinc-800">
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-zinc-800 pb-3">
+                    <h3 class="text-sm font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-camera text-emerald-500"></i> Grok AI 食物拍照估重
+                    </h3>
+                    <button onclick="closeModal('foodScanModal')" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Upload / Capture Area -->
+                <div class="border-2 border-dashed border-slate-200 dark:border-zinc-700 rounded-2xl p-6 text-center space-y-3 bg-slate-50 dark:bg-zinc-800/40" id="dropZone">
+                    <div id="imagePreviewContainer" class="hidden">
+                        <img id="foodPreviewImg" class="max-h-48 mx-auto rounded-xl shadow object-cover">
+                    </div>
+                    <div id="uploadPrompt">
+                        <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl mb-2">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-700 dark:text-zinc-300">點擊上傳或拍攝食物照片</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Grok 將自動辨識菜餚名稱、克數區間與三大營養素</p>
+                    </div>
+                    <input type="file" id="foodPhotoInput" accept="image/*" class="hidden" onchange="handlePhotoSelect(event)">
+                    <button onclick="document.getElementById('foodPhotoInput').click()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow hover:bg-emerald-700 transition">
+                        選擇圖片 / 拍攝
+                    </button>
+                </div>
+
+                <!-- Scanning / Result Section -->
+                <div id="scanResultSection" class="hidden space-y-3">
+                    <div id="scanLoading" class="text-center py-4 space-y-2">
+                        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-500"></i>
+                        <p class="text-xs font-semibold text-slate-600 dark:text-zinc-300">Grok 正在分析食物圖片並計算誤差 Buffer...</p>
+                    </div>
+
+                    <div id="scanSuccess" class="space-y-3 hidden">
+                        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-emerald-900 dark:text-emerald-200" id="aiDishName">冰室焗豬扒飯</span>
+                                <span class="text-[10px] bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-100 px-2 py-0.5 rounded font-bold" id="aiConfidence">置信度 92%</span>
+                            </div>
+                            <div class="text-xs text-emerald-700 dark:text-emerald-300 mt-1" id="aiWeightRange">
+                                預估重量：450g (±15% Buffer: 382g - 517g)
+                            </div>
+                        </div>
+
+                        <!-- Buffer Adjustment Slider -->
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-semibold text-slate-400">手動微調重量區間 Buffer (±%)</label>
+                            <input type="range" id="scanBufferSlider" min="5" max="40" value="15" oninput="adjustScanWeight(this.value)" class="w-full accent-green-500">
+                        </div>
+
+                        <!-- Macro Breakdown Output -->
+                        <div class="grid grid-cols-4 gap-2 text-center text-xs font-bold">
+                            <div class="bg-slate-100 dark:bg-zinc-800 p-2 rounded-xl">
+                                <span class="text-[9px] text-slate-400 block font-normal">熱量</span>
+                                <span id="aiCals" class="text-slate-800 dark:text-white">680</span> kcal
+                            </div>
+                            <div class="bg-slate-100 dark:bg-zinc-800 p-2 rounded-xl">
+                                <span class="text-[9px] text-slate-400 block font-normal">蛋白</span>
+                                <span id="aiProtein" class="text-rose-500">32</span> g
+                            </div>
+                            <div class="bg-slate-100 dark:bg-zinc-800 p-2 rounded-xl">
+                                <span class="text-[9px] text-slate-400 block font-normal">脂肪</span>
+                                <span id="aiFat" class="text-amber-500">24</span> g
+                            </div>
+                            <div class="bg-slate-100 dark:bg-zinc-800 p-2 rounded-xl">
+                                <span class="text-[9px] text-slate-400 block font-normal">碳水</span>
+                                <span id="aiCarbs" class="text-cyan-500">82</span> g
+                            </div>
+                        </div>
+
+                        <button onclick="confirmAIScanLog()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow">
+                            加入今日飲食紀錄
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL 2: MANUAL FOOD LOGGING -->
+        <div id="manualFoodModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white dark:bg-zinc-900 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto border border-slate-200 dark:border-zinc-800">
+                <div class="flex justify-between items-center border-b border-slate-100 dark:border-zinc-800 pb-3">
+                    <h3 class="text-sm font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-green-500"></i> 自訂輸入食物
+                    </h3>
+                    <button onclick="closeModal('manualFoodModal')" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <label class="font-semibold text-slate-600 dark:text-zinc-400">食物 / 菜名</label>
+                        <input type="text" id="manualName" placeholder="例如：雞胸肉沙拉" class="w-full mt-1 p-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="font-semibold text-slate-600 dark:text-zinc-400">卡路里 (kcal)</label>
+                            <input type="number" id="manualCals" placeholder="350" class="w-full mt-1 p-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-600 dark:text-zinc-400">蛋白質 (g)</label>
+                            <input type="number" id="manualProtein" placeholder="30" class="w-full mt-1 p-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="font-semibold text-slate-600 dark:text-zinc-400">脂肪 (g)</label>
+                            <input type="number" id="manualFat" placeholder="10" class="w-full mt-1 p-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-600 dark:text-zinc-400">碳水化合物 (g)</label>
+                            <input type="number" id="manualCarbs" placeholder="25" class="w-full mt-1 p-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl">
+                        </div>
+                    </div>
+
+                    <button onclick="addManualFoodLog()" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition shadow mt-2">
+                        加入紀錄
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. Cha Chaan Teng Catalog (230+ HK Items Index Sample) ---
+        const chaChaanTengMenu = [
+            { id: 1, name: "港式菠蘿油", cals: 380, p: 6, f: 21, c: 42, category: "點心/麵包" },
+            { id: 2, name: "乾炒牛河", cals: 850, p: 28, f: 38, c: 98, category: "粉麵飯" },
+            { id: 3, name: "冰室焗豬扒飯", cals: 780, p: 35, f: 32, c: 88, category: "粉麵飯" },
+            { id: 4, name: "凍香滑奶茶 (少甜)", cals: 160, p: 3, f: 7, c: 22, category: "飲品" },
+            { id: 5, name: "凍檸檬茶 (微糖)", cals: 90, p: 0, f: 0, c: 23, category: "飲品" },
+            { id: 6, name: "西多士 (加糖漿&花生醬)", cals: 520, p: 10, f: 28, c: 58, category: "小食" },
+            { id: 7, name: "港式蛋撻", cals: 210, p: 4, f: 13, c: 20, category: "點心" },
+            { id: 8, name: "鮮蝦雲吞麵", cals: 420, p: 22, f: 10, c: 60, category: "粉麵" },
+            { id: 9, name: "餐肉煎蛋飯", cals: 680, p: 22, f: 30, c: 80, category: "粉麵飯" },
+            { id: 10, name: "咖哩牛腩飯", cals: 820, p: 32, f: 36, c: 92, category: "粉麵飯" },
+            { id: 11, name: "沙嗲牛肉公仔麵", cals: 580, p: 20, f: 24, c: 70, category: "粉麵" },
+            { id: 12, name: "煎蘿蔔糕 (3塊)", cals: 260, p: 5, f: 10, c: 38, category: "點心" },
+        ];
+
+        // --- 2. Initial Application State ---
+        let appData = {
+            profile: {
+                name: "Terry Lee",
+                weight: 68.5,
+                height: 175,
+                unitWeight: "kg",
+                unitHeight: "cm",
+                goal: "muscle", // 'muscle', 'fatloss', 'maintain'
+                activity: 1.55,
+                targetCals: 2200,
+                targetProtein: 140,
+                targetFat: 70,
+                targetCarbs: 250,
+                grokApiKey: "",
+                grokBuffer: 15
+            },
+            meals: [
+                { id: 101, name: "港式菠蘿油", cals: 380, p: 6, f: 21, c: 42, time: "08:30" },
+                { id: 102, name: "鮮蝦雲吞麵", cals: 420, p: 22, f: 10, c: 60, time: "12:45" },
+                { id: 103, name: "香煎雞胸肉", cals: 250, p: 38, f: 5, c: 2, time: "18:15" },
+            ],
+            exercises: [
+                { id: 201, name: "重量訓練 / 肌力", duration: 45, burn: 270, time: "17:00" },
+                { id: 202, name: "快走 (5.5km/h)", duration: 30, burn: 150, time: "20:00" },
+            ],
+            inbody: {
+                weight: 68.5,
+                fatPct: 18.2,
+                muscleMass: 32.4,
+                bmi: 22.6
+            }
+        };
+
+        // --- 3. Persistence Helpers ---
+        function loadSavedState() {
+            const saved = localStorage.getItem('bloomlife_data');
+            if (saved) {
+                try {
+                    appData = JSON.parse(saved);
+                } catch(e) { console.error("Could not parse saved data", e); }
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('bloomlife_data', JSON.stringify(appData));
+            updateUI();
+        }
+
+        // --- 4. Navigation & Modals ---
+        function switchTab(tabKey) {
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-nav-btn').forEach(btn => {
+                btn.classList.remove('text-green-600', 'dark:text-green-400');
+                btn.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`tab-${tabKey}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tabBtn-${tabKey}`);
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('text-green-600', 'dark:text-green-400');
+
+            // Render Charts when entering trends
+            if (tabKey === 'trends') {
+                setTimeout(renderTrendsCharts, 100);
+            }
+        }
+
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            m.classList.remove('hidden');
+            setTimeout(() => {
+                m.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            m.classList.add('opacity-0');
+            setTimeout(() => {
+                m.classList.add('hidden');
+            }, 300);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+            }, 2500);
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        // --- 5. UI Updates & Calculations ---
+        function updateUI() {
+            // Calculate totals
+            let totalCals = appData.meals.reduce((sum, m) => sum + m.cals, 0);
+            let totalP = appData.meals.reduce((sum, m) => sum + m.p, 0);
+            let totalF = appData.meals.reduce((sum, m) => sum + m.f, 0);
+            let totalC = appData.meals.reduce((sum, m) => sum + m.c, 0);
+
+            let totalBurn = appData.exercises.reduce((sum, e) => sum + e.burn, 0);
+            let totalWorkoutMins = appData.exercises.reduce((sum, e) => sum + e.duration, 0);
+
+            // Today Overview
+            document.getElementById('dashboardWeight').innerText = appData.inbody.weight;
+            document.getElementById('dashboardWeightUnit').innerText = appData.profile.unitWeight;
+            document.getElementById('calorieTargetSummary').innerText = `${totalCals} / ${appData.profile.targetCals} kcal`;
+
+            let calPct = Math.min(100, Math.round((totalCals / appData.profile.targetCals) * 100));
+            document.getElementById('calorieProgressBar').style.width = `${calPct}%`;
+
+            // Macros
+            document.getElementById('pProgressText').innerText = `${totalP}g`;
+            document.getElementById('pTargetText').innerText = `目標 ${appData.profile.targetProtein}g`;
+            document.getElementById('pBar').style.width = `${Math.min(100, (totalP / appData.profile.targetProtein) * 100)}%`;
+
+            document.getElementById('fProgressText').innerText = `${totalF}g`;
+            document.getElementById('fTargetText').innerText = `目標 ${appData.profile.targetFat}g`;
+            document.getElementById('fBar').style.width = `${Math.min(100, (totalF / appData.profile.targetFat) * 100)}%`;
+
+            document.getElementById('cProgressText').innerText = `${totalC}g`;
+            document.getElementById('cTargetText').innerText = `目標 ${appData.profile.targetCarbs}g`;
+            document.getElementById('cBar').style.width = `${Math.min(100, (totalC / appData.profile.targetCarbs) * 100)}%`;
+
+            // Workout
+            document.getElementById('todayWorkoutBurn').innerText = `${totalBurn} kcal`;
+            document.getElementById('todayWorkoutTime').innerText = `${totalWorkoutMins} 分鐘`;
+
+            // Motivation Message according to goal
+            const pPct = Math.round((totalP / appData.profile.targetProtein) * 100);
+            if (appData.profile.goal === 'muscle') {
+                document.getElementById('todayGoalLabel').innerText = "增肌模式中";
+                document.getElementById('todayMotivation').innerText = `蛋白質已達標 ${pPct}%！肌肉正在角落偷偷成長！`;
+            } else if (appData.profile.goal === 'fatloss') {
+                document.getElementById('todayGoalLabel').innerText = "減脂模式中";
+                document.getElementById('todayMotivation').innerText = `今日已消耗 ${totalBurn + 310} kcal，體脂正在悄悄流失！`;
+            } else {
+                document.getElementById('todayGoalLabel').innerText = "維持模式中";
+                document.getElementById('todayMotivation').innerText = `熱量控制完美，保持健康好身材！`;
+            }
+
+            // Render Meals
+            renderMealList();
+            renderExerciseList();
+
+            // Profile sync
+            document.getElementById('unitWeight').value = appData.profile.unitWeight;
+            document.getElementById('unitHeight').value = appData.profile.unitHeight;
+            document.getElementById('userGoal').value = appData.profile.goal;
+            document.getElementById('grokApiKey').value = appData.profile.grokApiKey || "";
+            document.getElementById('grokBufferRange').value = appData.profile.grokBuffer || 15;
+            document.getElementById('bufferVal').innerText = (appData.profile.grokBuffer || 15) + '%';
+        }
+
+        // --- 6. Food Search Index Logic ---
+        function handleFoodSearch() {
+            const query = document.getElementById('foodSearchInput').value.trim().toLowerCase();
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (!query) {
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            const matches = chaChaanTengMenu.filter(item => 
+                item.name.toLowerCase().includes(query) || item.category.toLowerCase().includes(query)
+            );
+
+            resultsDiv.innerHTML = '';
+            if (matches.length === 0) {
+                resultsDiv.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">無本地完全匹配，點擊上方可使用 Grok AI 手動評估</div>`;
+            } else {
+                matches.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'p-2.5 flex justify-between items-center hover:bg-slate-100 dark:hover:bg-zinc-800/60 cursor-pointer transition rounded-xl';
+                    row.onclick = () => addFoodFromCatalog(item);
+                    row.innerHTML = `
+                        <div>
+                            <div class="text-xs font-bold text-slate-800 dark:text-zinc-200">${item.name}</div>
+                            <div class="text-[10px] text-slate-400">${item.category} | P:${item.p}g F:${item.f}g C:${item.c}g</div>
+                        </div>
+                        <div class="text-xs font-bold text-green-600 dark:text-green-400 flex items-center gap-1">
+                            ${item.cals} kcal <i class="fa-solid fa-plus-circle"></i>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(row);
+                });
+            }
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function addFoodFromCatalog(item) {
+            const newMeal = {
+                id: Date.now(),
+                name: item.name,
+                cals: item.cals,
+                p: item.p,
+                f: item.f,
+                c: item.c,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            appData.meals.push(newMeal);
+            saveState();
+            document.getElementById('foodSearchInput').value = '';
+            document.getElementById('searchResults').classList.add('hidden');
+            showToast(`已加入：${item.name}`);
+        }
+
+        function renderMealList() {
+            const list = document.getElementById('mealList');
+            document.getElementById('mealCountBadge').innerText = `${appData.meals.length} 項`;
+            list.innerHTML = '';
+
+            appData.meals.forEach((meal) => {
+                const item = document.createElement('div');
+                item.className = 'p-3 bg-white dark:bg-zinc-800/60 rounded-xl border border-slate-100 dark:border-zinc-700/50 flex justify-between items-center';
+                item.innerHTML = `
+                    <div>
+                        <div class="text-xs font-bold text-slate-800 dark:text-zinc-200">${meal.name}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">${meal.time} | P:${meal.p}g F:${meal.f}g C:${meal.c}g</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xs font-bold text-green-600 dark:text-green-400">${meal.cals} kcal</span>
+                        <button onclick="removeMeal(${meal.id})" class="text-slate-300 hover:text-red-500 transition">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function removeMeal(id) {
+            appData.meals = appData.meals.filter(m => m.id !== id);
+            saveState();
+            showToast("已刪除餐食記錄");
+        }
+
+        // --- 7. Activity & Exercise MET Calculator ---
+        function updateExerciseMET() {
+            calculateExerciseBurn();
+        }
+
+        function calculateExerciseBurn() {
+            const select = document.getElementById('exerciseSelect');
+            const met = parseFloat(select.value);
+            const duration = parseInt(document.getElementById('exerciseDuration').value) || 0;
+            const weight = appData.inbody.weight || 68.5;
+
+            // Burn = MET * weight (kg) * (duration / 60)
+            const burn = Math.round(met * weight * (duration / 60));
+            document.getElementById('estimatedBurn').innerText = `約 ${burn} kcal`;
+            return burn;
+        }
+
+        function addExerciseLog() {
+            const select = document.getElementById('exerciseSelect');
+            const selectedOpt = select.options[select.selectedIndex];
+            const name = selectedOpt.getAttribute('data-name');
+            const duration = parseInt(document.getElementById('exerciseDuration').value) || 30;
+            const burn = calculateExerciseBurn();
+
+            const newEx = {
+                id: Date.now(),
+                name: name,
+                duration: duration,
+                burn: burn,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            appData.exercises.push(newEx);
+            saveState();
+            showToast(`已加入運動：${name}`);
+        }
+
+        function renderExerciseList() {
+            const list = document.getElementById('exerciseList');
+            list.innerHTML = '';
+
+            appData.exercises.forEach(ex => {
+                const item = document.createElement('div');
+                item.className = 'p-3 bg-white dark:bg-zinc-800/60 rounded-xl border border-slate-100 dark:border-zinc-700/50 flex justify-between items-center';
+                item.innerHTML = `
+                    <div>
+                        <div class="text-xs font-bold text-slate-800 dark:text-zinc-200">${ex.name}</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">${ex.time} | 時長: ${ex.duration} 分鐘</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xs font-bold text-purple-600 dark:text-purple-400">${ex.burn} kcal</span>
+                        <button onclick="removeExercise(${ex.id})" class="text-slate-300 hover:text-red-500 transition">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function removeExercise(id) {
+            appData.exercises = appData.exercises.filter(e => e.id !== id);
+            saveState();
+            showToast("已刪除運動紀錄");
+        }
+
+        // --- 8. Grok AI Photo Scan Simulation / Real API Call ---
+        let currentAIScanData = null;
+
+        function handlePhotoSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                document.getElementById('foodPreviewImg').src = evt.target.result;
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                document.getElementById('uploadPrompt').classList.add('hidden');
+                document.getElementById('scanResultSection').classList.remove('hidden');
+                document.getElementById('scanLoading').classList.remove('hidden');
+                document.getElementById('scanSuccess').classList.add('hidden');
+
+                // Simulate Grok API response / buffer calculation
+                setTimeout(() => {
+                    currentAIScanData = {
+                        name: "冰室焗豬扒飯",
+                        baseWeight: 450,
+                        cals: 780,
+                        p: 35,
+                        f: 32,
+                        c: 88,
+                        bufferPct: appData.profile.grokBuffer || 15
+                    };
+
+                    updateAIScanUI();
+                    document.getElementById('scanLoading').classList.add('hidden');
+                    document.getElementById('scanSuccess').classList.remove('hidden');
+                }, 1500);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function adjustScanWeight(bufferPct) {
+            if (!currentAIScanData) return;
+            currentAIScanData.bufferPct = parseInt(bufferPct);
+            updateAIScanUI();
+        }
+
+        function updateAIScanUI() {
+            if (!currentAIScanData) return;
+            const bPct = currentAIScanData.bufferPct;
+            const minW = Math.round(currentAIScanData.baseWeight * (1 - bPct/100));
+            const maxW = Math.round(currentAIScanData.baseWeight * (1 + bPct/100));
+
+            document.getElementById('aiDishName').innerText = currentAIScanData.name;
+            document.getElementById('aiWeightRange').innerText = `預估重量：${currentAIScanData.baseWeight}g (±${bPct}% Buffer: ${minW}g - ${maxW}g)`;
+            document.getElementById('aiCals').innerText = currentAIScanData.cals;
+            document.getElementById('aiProtein').innerText = currentAIScanData.p;
+            document.getElementById('aiFat').innerText = currentAIScanData.f;
+            document.getElementById('aiCarbs').innerText = currentAIScanData.c;
+        }
+
+        function confirmAIScanLog() {
+            if (!currentAIScanData) return;
+            const newMeal = {
+                id: Date.now(),
+                name: currentAIScanData.name + " (Grok 拍照)",
+                cals: currentAIScanData.cals,
+                p: currentAIScanData.p,
+                f: currentAIScanData.f,
+                c: currentAIScanData.c,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            appData.meals.push(newMeal);
+            saveState();
+            closeModal('foodScanModal');
+            showToast("已加入 Grok 估算餐食");
+        }
+
+        function addManualFoodLog() {
+            const name = document.getElementById('manualName').value || "自訂餐食";
+            const cals = parseInt(document.getElementById('manualCals').value) || 0;
+            const p = parseInt(document.getElementById('manualProtein').value) || 0;
+            const f = parseInt(document.getElementById('manualFat').value) || 0;
+            const c = parseInt(document.getElementById('manualCarbs').value) || 0;
+
+            const newMeal = {
+                id: Date.now(),
+                name: name,
+                cals: cals,
+                p: p,
+                f: f,
+                c: c,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            appData.meals.push(newMeal);
+            saveState();
+            closeModal('manualFoodModal');
+            showToast("已新增自訂餐食");
+        }
+
+        function updateInBodySimulated() {
+            appData.inbody.weight = (parseFloat(appData.inbody.weight) + (Math.random() > 0.5 ? 0.2 : -0.2)).toFixed(1);
+            saveState();
+            showToast("已從 Apple Health / InBody 同步數據");
+        }
+
+        function saveProfileSettings() {
+            appData.profile.unitWeight = document.getElementById('unitWeight').value;
+            appData.profile.unitHeight = document.getElementById('unitHeight').value;
+            appData.profile.goal = document.getElementById('userGoal').value;
+            appData.profile.grokApiKey = document.getElementById('grokApiKey').value;
+            appData.profile.grokBuffer = parseInt(document.getElementById('grokBufferRange').value);
+            saveState();
+            showToast("設定已儲存");
+        }
+
+        // --- 9. Trends Charts (Chart.js) ---
+        let weightChartInstance = null;
+        let calorieChartInstance = null;
+
+        function renderTrendsCharts() {
+            // Weight Chart
+            const ctx1 = document.getElementById('weightChart').getContext('2d');
+            if (weightChartInstance) weightChartInstance.destroy();
+
+            weightChartInstance = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['8/06', '8/07', '8/08', '8/09', '8/10', '8/11', '8/12'],
+                    datasets: [{
+                        label: '體重 (kg)',
+                        data: [69.2, 69.0, 68.8, 68.9, 68.7, 68.6, appData.inbody.weight],
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#16a34a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 67, max: 71, grid: { color: 'rgba(150, 150, 150, 0.1)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Calorie Balance Chart
+            const ctx2 = document.getElementById('calorieChart').getContext('2d');
+            if (calorieChartInstance) calorieChartInstance.destroy();
+
+            let todayCals = appData.meals.reduce((sum, m) => sum + m.cals, 0);
+
+            calorieChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['8/06', '8/07', '8/08', '8/09', '8/10', '8/11', '今日'],
+                    datasets: [
+                        { label: '攝取 (kcal)', data: [2100, 1950, 2300, 2050, 2150, 1980, todayCals], backgroundColor: '#22c55e' },
+                        { label: '目標 (kcal)', data: [2200, 2200, 2200, 2200, 2200, 2200, 2200], backgroundColor: '#cbd5e1' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                    scales: {
+                        y: { min: 0, max: 3000, grid: { color: 'rgba(150, 150, 150, 0.1)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- 10. Window Load Initialization ---
+        window.onload = function() {
+            loadSavedState();
+            updateUI();
+            calculateExerciseBurn();
+        };
+    </script>
+</body>
+</html>
